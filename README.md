@@ -22,7 +22,7 @@ y = the offset in a 5 by 5 matrix that should be filled in for this pentomino pi
 
 Note: Pentomino pieces can be rotated, and flipped to give more valid orientations to be placed on the board.
 
-[DancingLinks.java](src/DancingLinks.java) and [BruteForce.java](src/BruteForce.java) both solve for all solutions, but if you want to solve for the first found solution, simply replace the ``return depth - 1;`` with ``return -1;`` in the conditionals for solutions being found. This will backtrack to the first level of recursion. 
+[DancingLinks.java](src/DancingLinks.java) and [BruteForce.java](src/BruteForce.java) both solve for all solutions, but if you want to solve for the first found solution, simply replace the ``return depth - 1;`` with ``return -1;`` in the conditionals for solutions being found [here](https://github.com/DDews/DancingLinks/blob/72c93c2f0eab3f0dedb4124e71fd579abd5fbb98/src/DancingLinks.java#L353) and [here](https://github.com/DDews/DancingLinks/blob/72c93c2f0eab3f0dedb4124e71fd579abd5fbb98/src/DancingLinks.java#L360). This will backtrack to the first level of recursion. 
 
 
 
