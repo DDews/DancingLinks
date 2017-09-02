@@ -38,3 +38,8 @@ The brute force implementation is extremely slow because it checks an arraylist 
 
 
 The DancingLinks.java solves the same problem in an order of magnitude faster than BruteForce.java. On my laptop, it solves all solutions (including rotations and mirrors) for 3by20.txt in 4 seconds, and solves the same coverage of solutions for 4by15.txt in about 4 minutes. For contrast, the BruteForce.java solves the same solution coverage for 3by20.txt in about 5 minutes, and the 4by15.txt in about 45 minutes.
+
+
+TODO:
+- Add a GUI for selecting options including: Show attempts graphically, Find all solutions, Find first solution
+- Add ability to make custom "boards" to fill with pentomino puzzles rather than a standard rectangle
