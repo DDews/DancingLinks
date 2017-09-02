@@ -7,7 +7,7 @@ Line 1: ``<Rows> <Columns>``
 
 Line 2: ``<Number of Pentomino pieces>``
 
-Line 3: ``<x1> <y1>	<x2> <y2>	...``
+Line 3+: ``<x1> <y1>	<x2> <y2>	...``
 
 Rows = the number of rows this pentomino puzzle is
 
