@@ -1,5 +1,26 @@
 DancingLinks.java is an implementation of the Dancing Links algorithm by Dr Knuth, used to solve pentomino puzzles.
 
+
+The input files are to be constructed as follows:
+Line 1: \<Rows\> \<Columns\>
+Line 2: \<Number of Pentomino pieces\>
+Line 3+: \<x1\>\\s\<y1\>\\s\<x2\>\<y2\> [...]
+
+Rows = the number of rows this pentomino puzzle is
+Columns = the number of columns this pentomino puzzle is
+Number of Pentomino Pieces = the number of pieces we will be using to solve this puzzle
+x = the offset in a 5 by 5 matrix that should be filled in for this pentomino piece
+y = the offset in a 5 by 5 matrix that should be filled in for this pentomino piece
+
+
+Note: Pentomino pieces can be rotated, and flipped to give more valid orientations to be placed on the board.
+
+DancingLinks.java and BruteForce.java both solve for all solutions, but if you want to solve for the first found solution, simply replace the ``return depth - 1;`` with ``return -1;`` in the conditionals for solutions being found. This will backtrack to the first level of recursion. 
+
+
+
+
+
 To learn as much as possible, I did some things that are not very conventional:
 - I used binary numbers to represent pentomino pieces. I did this to get more familiar with bitwise operations and binary number processing. Doing this made it more complex for no good reason other than to learn.
 - I never actually read Dr. Knuth's paper, but instead read the wikipedia articles on Dancing Links and Algorithm X. The rest was inferred through trial and error.
