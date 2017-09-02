@@ -2,14 +2,22 @@ DancingLinks.java is an implementation of the Dancing Links algorithm by Dr Knut
 
 
 The input files are to be constructed as follows:
+
 Line 1: \<Rows\> \<Columns\>
+
 Line 2: \<Number of Pentomino pieces\>
+
 Line 3+: \<x1\>\\s\<y1\>\\s\<x2\>\<y2\> [...]
 
+
 Rows = the number of rows this pentomino puzzle is
+
 Columns = the number of columns this pentomino puzzle is
+
 Number of Pentomino Pieces = the number of pieces we will be using to solve this puzzle
+
 x = the offset in a 5 by 5 matrix that should be filled in for this pentomino piece
+
 y = the offset in a 5 by 5 matrix that should be filled in for this pentomino piece
 
 
