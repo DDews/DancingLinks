@@ -379,7 +379,7 @@ public class DancingLinks {
             }
 
             // if the result of our last recursion wants us to backtrack, backtrack
-            if (depth > 1 && result < depth) return result;
+            if ((depth > 1 && result < depth) || result < 0) return result;
             // if not, start back at the column we were on originally
             node = original;
             // and select the next row in that column, to try again
