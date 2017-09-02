@@ -1,4 +1,4 @@
-DancingLinks.jav is an implementation of the Dancing Links algorithm by Dr Knuth.
+DancingLinks.java is an implementation of the Dancing Links algorithm by Dr Knuth.
 
 To learn as much as possible, I did some things that are not very conventional:
 - I used binary numbers to represent pentomino pieces. I did this to get more familiar with bitwise operations and binary number processing. Doing this made it more complex for no good reason other than to learn.
