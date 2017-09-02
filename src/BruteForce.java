@@ -4,7 +4,7 @@ import java.io.FileReader;
 import java.math.BigInteger;
 import java.util.*;
 
-public class Proj2 {
+public class BruteForce {
     private static ArrayList<TreeSet<Integer>> solutions;
     private static boolean[][] matrix;
     private static int num_columns = 0;
