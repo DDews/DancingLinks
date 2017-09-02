@@ -10,7 +10,6 @@ public class DancingLinks {
     private static long start_time;
     private static int solutions = 0;
     private static DLX matrix;
-    private static ArrayList<TreeSet<DLY>> rows;
     private static ArrayList<DLX> headers;
     private static int num_columns = 0;
     private static int num_rows = 0;
@@ -115,8 +114,6 @@ public class DancingLinks {
             int inc = (((num_columns + 1) - block.width)) * ((num_rows + 1) - block.height);
             if (inc > 0) positions += inc;
         }
-        //System.out.println(positions);
-        //System.out.println("rows: " + rows + ", columns: " + columns);
         matrix = new DLX(0);
         int i = 0;
         DLX last = matrix;
@@ -133,7 +130,6 @@ public class DancingLinks {
             System.out.println(current);
             current = current.next();
         } while (current != matrix);
-        rows = new ArrayList<TreeSet<DLY>>();
         for (Pentomino block : blocks) {
             int block_num = block.name.charAt(0) - 'A';
             for (int column = 0; column < (num_columns + 1) - block.width; column++) {
@@ -155,7 +151,6 @@ public class DancingLinks {
                             money.control = control;
                             money = money.next();
                         }
-                        rows.add(control);
                         // For testing; display the piece on the board in this position
                         ArrayList<DLY> test = new ArrayList<DLY>();
                         test.add(last_link);
@@ -173,11 +168,6 @@ public class DancingLinks {
         //start on the first position on the board.
         matrix = headers.get(12);
         DLX stop = headers.get(0);
-        /*DLY column = matrix.data;
-        do {
-            if (column.data.equals(747)) System.out.println(column);
-            column = column.nextDown();
-        } while (column != matrix.data);*/
         recurse(matrix, matrix.data, stop,0, new ArrayList<DLY>());
         System.out.println("Dancing links time: " + time(System.currentTimeMillis() - start_time));
     }
@@ -263,12 +253,6 @@ public class DancingLinks {
         return get_name(((DLY)obj.control.iterator().next()).header.num);
     }
     public static int recurse(DLX node, DLY first_down, DLX stop, int depth, ArrayList<DLY> solution) {
-        //System.out.println(solution.size() + ", " + depth + ", " + solution);
-        if (!node.alive) {
-            System.out.println("!!!");
-            printSolution(solution);
-            return -1;
-        }
         DLX current = node;
         DLX found = node;
         int smallest = Integer.MAX_VALUE;
@@ -282,161 +266,127 @@ public class DancingLinks {
             current = current.next();
         } while (current != null && current != node && current != stop);
         node = found;
-        if (solution.size() >= 12) {
-            if (solution.size() >= num_pieces) System.out.println("EUREKA");
-            printSolution(solution);
-            System.out.println();
-        }
-        if (first_down == null) {
-            System.out.println("oops: " + node.size);
-            return depth - 1;
-        }
-        if (!node.alive) System.err.println("errrrr");
         if (!first_down.alive) {
             if (rowPiece(solution.get(0)).equals("U") && rowPiece(first_down).equals("X") && depth == 2) System.err.println(get_name(((DLY)first_down.control.iterator().next()).header.num) + " uhhhh: " + depth + ", " + node.size + ", " + node.num);
             if (node.size <= 0) return depth - 1;
         }
-        if (!first_down.alive && node.size > 0) {
-            System.out.println("WTF");
-            first_down = rows.get(0).iterator().next();
-            if (first_down.alive) System.out.println("good...");
-            else System.out.println("fuck..");
-        }
-        //System.out.println(node.num + "," + first_down.data + ": " + node.alive +", " + first_down.alive + ", "  + node.size);
         DLY row = first_down;
         DLX original = node;
         int iteration = 0;
-        if (solution.size() >= num_pieces) {
-            System.out.println("HORY SHET");
-            printSolution(solution);
-            System.out.println();
-            return -1;
-        }
         if (node.size == 0) {
-            //if (((DLY)solution.get(0).control.iterator().next()).header.num == 6) System.out.println("\tFAILED on (alive: " + node.alive + ") column " + node.num + ", size: " + node.size + ", data: " + node.data);
             return depth - 1;
-        }// else System.out.println(node.size);
-        DLX current_header = node;
+        }
         do {
             if (depth == 0) {
                 System.out.println(get_name(((DLY) row.control.iterator().next()).header.num));
             }
-            /*if (solution.size() > 0 && rowPiece(solution.get(0)) == "U" && solution.get(0).data.equals(747)) {
-                ArrayList<DLY> test_solution = new ArrayList<DLY>(solution);
-                test_solution.add(first_down);
-                printSolution(test_solution);
-                System.out.println(depth + ", " + node + " (" + node.size + ") , " + first_down);
-            }*/
-           // System.err.println(depth + " ---- " + node.num + ", " + node.size);
-            /*if (solution.size() > 0 && solution.get(0).header.num == 6) {
-                printSolution(solution);
-                System.out.println();
-            }*/
-            ArrayList<TreeSet<DLY>> copy_rows = new ArrayList<TreeSet<DLY>>(rows);
             if (depth == 0) printDepth(depth,original,iteration++);
             boolean breaking = false;
             LinkedBlockingQueue<Object> removed = new LinkedBlockingQueue<Object>();
             ArrayList<DLY> control_rows = new ArrayList<DLY>();
             // start with the current selected row
             DLY next_column = row;
-           // System.out.println("trying row " + row);
-            current_header = node;
             if (next_column != null) {
                 ArrayList<DLY> selected_row = new ArrayList<DLY>();
+                // for every object in this row
                 for (Object obj : next_column.control) {
                     DLY column = (DLY)obj;
+                    // add it to the selection
                     selected_row.add(column);
                 }
+                // for every selected column box in that selected row
                 for (DLY column : selected_row) {
+                    // add this to the removed stack to add it back later
                     removed.add(column.header);
+                    // if we are currently on this header, go to the next
                     if (column.header == node) node = node.next();
+
+                    // from now on, skip this header
                     column.header.ghost();
+                    // add the header's control row
                     control_rows.add(column);
+
+                    // now from this column box, start going down
                     DLY next_down = column;
                     do {
-                        //next_down.ghost();
-                        //removed.add(next_down);
+                        // don't remove the selected row's box again!
                         if (next_down != column) {
+                            // for every object in this row
                             for (Object obj : next_down.control) {
                                 DLY row_box = (DLY) obj;
+
+                                // if it is alive,
                                 if (row_box.alive) {
+                                    // from now on, skip it
                                     row_box.ghost();
+                                    // add it to the stack for easy backtracking
                                     removed.add(row_box);
                                 }
                             }
                         } else {
+                            // skip this selected column's row
                             column.ghost();
+                            // add it to the backtracking
                             removed.add(column);
                         }
+                        // continue to do this until you reach the end
                         next_down = next_down.nextDown();
                     } while (next_down != null);
                 }
             }
+            // check if we should return a single answer or not
             int result;
-            /*
-            DLX current_node = node;
-            System.out.print("Current DLX's: ");
-            do {
-                System.out.print(current_node.num + ", ");
-                current_node = current_node.next();
-            } while (current_node != node);
-            System.out.println();
-            System.out.print("Current rows: ");
-            for (TreeSet<DLY> set : rows) {
-                System.out.print(set.iterator().next().data + ", ");
-            }
-            System.out.println();
-            System.out.println(headers.get(5).data);
-            */
+            // make a unique solution path
             ArrayList<DLY> new_solution = new ArrayList<DLY>(solution);
+            // add this selected row to the unique solution path
             new_solution.add(row);
-            if (new_solution.size() < 12) {
+            // if we haven't found all the pieces,
+            if (new_solution.size() < num_pieces) {
+                // and there are more columns to traverse, recurse
                 if (node.next() != null) result = recurse(node, node.data, stop, depth + 1, new_solution);
                 else {
+                    // otherwise we have found one solution
                     System.out.println("Solution #" + ++solutions);
                     printSolution(new_solution);
-                    result = depth - 1;
+                    result = depth - 1; // I am guessing using the last 2 pieces won't generate another solution, as this emplies that this piece is the same as another
                 }
             }
             else {
+                // if we have used all the pieces, print this solution
                 System.out.println("Solution #" + ++solutions);
                 printSolution(new_solution);
-                result = depth - 1;
+                result = depth - 1; // I am guessing using the last piece will not make more solutions, as this emplies that this piece can be interchanged with another
             }
+            // backtrack
             for (Object obj : removed) {
+                // if the node we are reviving is a column header,
                 if (obj.getClass() == DLX.class) {
                     DLX removed_column = (DLX)obj;
+                    // revive the column header
                     removed_column.resurrect();
-                    //System.out.println("revived column " + removed_column.num);
                 } else if (obj.getClass() == DLY.class) {
+                    // otherwise, revive the row
                     DLY removed_row = (DLY)obj;
                     removed_row.resurrect();
-                    //System.out.println("revived row " + removed_row);
                 }
             }
+            // now for every revived column header
             for (DLY control_row : control_rows) {
+                // set its control row back to what it was
                 control_row.header.data = control_row;
             }
-            /*for (int i = 0; i < ghosted_columns.size(); i++) {
-                DLY control_row = control_rows.get(i);
-                if (control_row != null) {
-                    control_row.header.data = control_row;
-                }
-                ghosted_columns.get(i).resurrect();
-                ghosted_columns.get(i).data = control_row;
-            }
-            for (int i = 0; i < removed_rows.size(); i++) {
-                ArrayList<DLY> removed_row = removed_rows.get(i);
-                for (int j = 0; j < removed_row.size(); j++) {
-                    DLY removed_node = removed_row.get(j);
-                    removed_node.resurrect();
-                }
-            }*/
+
+            // if the result of our last recursion wants us to backtrack, backtrack
             if (depth > 1 && result < depth) return result;
+            // if not, start back at the column we were on originally
             node = original;
+            // and select the next row in that column, to try again
             row = row.nextDown();
-            //if (row == null) System.err.println(depth  + "...." + node.num + ", " + node.size);
+
+            // until we run out of rows in this column
         } while (row != null && row != first_down);
+
+        // we tried every possibility in this column. backtrack
         return depth - 1;
     }
 }
