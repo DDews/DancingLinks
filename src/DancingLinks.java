@@ -1,10 +1,14 @@
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class DancingLinks {
-    private static ArrayList<TreeSet<Integer>> solutions;
+    private static long start_time;
+    private static int solutions = 0;
     private static DLX matrix;
     private static ArrayList<TreeSet<DLY>> rows;
     private static ArrayList<DLX> headers;
@@ -40,6 +44,13 @@ public class DancingLinks {
         read(file);
     }
 
+    public static String time(long timeInMilliSeconds) {
+        long seconds = timeInMilliSeconds / 1000;
+        long minutes = seconds / 60;
+        long hours = minutes / 60;
+        long days = hours / 24;
+        return days + ":" + hours % 24 + ":" + minutes % 60 + ":" + seconds % 60;
+    }
     public static void read(File file) {
         BufferedReader reader = null;
         try {
@@ -50,7 +61,7 @@ public class DancingLinks {
             return;
         }
         if (reader == null) return;
-
+        start_time = System.currentTimeMillis();
         // initialize variables
         num_pieces = num_rows = num_columns = 0;
         ArrayList<ArrayList<Integer>> pentaminoes = new ArrayList<ArrayList<Integer>>();
@@ -155,13 +166,20 @@ public class DancingLinks {
                 }
             }
         }
-        solutions = new ArrayList<TreeSet<Integer>>();
+        solutions = 0;
         for (DLX column : headers) {
             System.out.println(column);
         }
         //start on the first position on the board.
         matrix = headers.get(12);
-        recurse(matrix, matrix.data, 0, new ArrayList<DLY>(), rows);
+        DLX stop = headers.get(0);
+        /*DLY column = matrix.data;
+        do {
+            if (column.data.equals(747)) System.out.println(column);
+            column = column.nextDown();
+        } while (column != matrix.data);*/
+        recurse(matrix, matrix.data, stop,0, new ArrayList<DLY>());
+        System.out.println("Dancing links time: " + time(System.currentTimeMillis() - start_time));
     }
 
     public static DLY set(DLY to_append, int r, int block_num, int line, int width, int row, int column) {
@@ -200,7 +218,7 @@ public class DancingLinks {
         for (int m = 0; m < num_rows; m++) {
             StringBuilder row = new StringBuilder(num_columns);
             for (int j = 0; j < num_columns; j++) {
-                row.append("E");
+                row.append(".");
             }
             table.add(row);
         }
@@ -215,7 +233,7 @@ public class DancingLinks {
                     int row = Math.abs(current.header.num - num_pieces) / num_columns;
 
                     int column = (current.header.num - num_pieces) % num_columns;
-                    if (!table.get(row).substring(column, column + 1).equals("E"))
+                    if (!table.get(row).substring(column, column + 1).equals("."))
                         System.err.println("collision... of " + rand_color + " overwriting " + table.get(row).substring(column, column + 1));
                     table.get(row).replace(column, column + 1, rand_color);
                 }
@@ -241,16 +259,42 @@ public class DancingLinks {
         for (; total < 50; total++) out.append(colors.get(0));
         System.out.println(out);
     }
-    public static int recurse(DLX node, DLY first_down, int depth, ArrayList<DLY> solution, ArrayList<TreeSet<DLY>> rows) {
+    public static String rowPiece(DLY obj) {
+        return get_name(((DLY)obj.control.iterator().next()).header.num);
+    }
+    public static int recurse(DLX node, DLY first_down, DLX stop, int depth, ArrayList<DLY> solution) {
         //System.out.println(solution.size() + ", " + depth + ", " + solution);
-        if (solution.size() >= 11) {
+        if (!node.alive) {
+            System.out.println("!!!");
+            printSolution(solution);
+            return -1;
+        }
+        DLX current = node;
+        DLX found = node;
+        int smallest = Integer.MAX_VALUE;
+        do {
+            if (node.alive) {
+                if (current.size < smallest) {
+                    smallest = current.size;
+                    found = current;
+                }
+            }
+            current = current.next();
+        } while (current != null && current != node && current != stop);
+        node = found;
+        if (solution.size() >= 12) {
             if (solution.size() >= num_pieces) System.out.println("EUREKA");
             printSolution(solution);
             System.out.println();
         }
         if (first_down == null) {
             System.out.println("oops: " + node.size);
-            return depth - 2;
+            return depth - 1;
+        }
+        if (!node.alive) System.err.println("errrrr");
+        if (!first_down.alive) {
+            if (rowPiece(solution.get(0)).equals("U") && rowPiece(first_down).equals("X") && depth == 2) System.err.println(get_name(((DLY)first_down.control.iterator().next()).header.num) + " uhhhh: " + depth + ", " + node.size + ", " + node.num);
+            if (node.size <= 0) return depth - 1;
         }
         if (!first_down.alive && node.size > 0) {
             System.out.println("WTF");
@@ -266,115 +310,67 @@ public class DancingLinks {
             System.out.println("HORY SHET");
             printSolution(solution);
             System.out.println();
-            return depth / 2;
+            return -1;
         }
         if (node.size == 0) {
-            //System.out.println("\tFAILED on (alive: " + node.alive + ") column " + node.num + ", size: " + node.size + ", data: " + node.data);
-            return depth / 3;
+            //if (((DLY)solution.get(0).control.iterator().next()).header.num == 6) System.out.println("\tFAILED on (alive: " + node.alive + ") column " + node.num + ", size: " + node.size + ", data: " + node.data);
+            return depth - 1;
         }// else System.out.println(node.size);
         DLX current_header = node;
         do {
-            if (solution.size() > 0 && solution.get(0).header.num == 6) printSolution(solution);
+            if (depth == 0) {
+                System.out.println(get_name(((DLY) row.control.iterator().next()).header.num));
+            }
+            /*if (solution.size() > 0 && rowPiece(solution.get(0)) == "U" && solution.get(0).data.equals(747)) {
+                ArrayList<DLY> test_solution = new ArrayList<DLY>(solution);
+                test_solution.add(first_down);
+                printSolution(test_solution);
+                System.out.println(depth + ", " + node + " (" + node.size + ") , " + first_down);
+            }*/
+           // System.err.println(depth + " ---- " + node.num + ", " + node.size);
+            /*if (solution.size() > 0 && solution.get(0).header.num == 6) {
+                printSolution(solution);
+                System.out.println();
+            }*/
             ArrayList<TreeSet<DLY>> copy_rows = new ArrayList<TreeSet<DLY>>(rows);
             if (depth == 0) printDepth(depth,original,iteration++);
             boolean breaking = false;
-            ArrayList<DLX> ghosted_columns = new ArrayList<DLX>();
-            ArrayList<ArrayList<DLY>> removed_rows = new ArrayList<ArrayList<DLY>>();
-            ArrayList<ArrayList<DLY>> removed_cols = new ArrayList<ArrayList<DLY>>();
+            LinkedBlockingQueue<Object> removed = new LinkedBlockingQueue<Object>();
             ArrayList<DLY> control_rows = new ArrayList<DLY>();
             // start with the current selected row
             DLY next_column = row;
            // System.out.println("trying row " + row);
             current_header = node;
             if (next_column != null) {
-                do {
-                    control_rows.add(next_column.header.data);
-                    ghosted_columns.add(next_column.header);
-                    // delete this column
-
-                    next_column.header.ghost();
-                    if (next_column.header == node) node = node.next();
-                    //DLY next_over = next_column.next();
-                    if (next_column != row) {
-                        DLY this_row = next_column;
-                        // select this column
-                        DLY next_box_in_column = this_row;
-
-                        // create a list of the columns nodes in this row
-                        ArrayList<DLY> removed_column = new ArrayList<DLY>();
-                        do {
-                            // add this column box to the removed row
-                            removed_column.add(next_box_in_column);
-
-                            // delete this column box
-                             next_box_in_column.ghost();
-
-                            // if this isn't the top of the column,
-                            if (next_box_in_column != this_row) {
-                                // make a list of removed items
-                                ArrayList<DLY> removed_row = new ArrayList<DLY>();
-
-
-                                for (Object row_obj : next_box_in_column.control) {
-                                    DLY row_node = (DLY)row_obj;
-                                    if (row_node.alive) {
-                                        removed_row.add(row_node);
-                                        row_node.ghost();
-                                    }
-                                }
-                                copy_rows.remove(next_box_in_column.control);
-                                removed_rows.add(removed_row);
-
-                                // get the next in this row
-                                /*DLY row_box = next_box_in_column.next();
-                                DLY first_of_row = row_box;
-
-                                if (row_box != null) {
-                                    do {
-                                        // remove it
-                                        if (row_box.alive) {
-                                            removed_row.add(row_box);
-                                            row_box.ghost();
-                                        }
-
-                                        // go to next
-                                        row_box = row_box.next();
-
-                                        // until it is null (pointing to itself)
-                                    } while (row_box != null);
-                                    removed_rows.add(removed_row);
-                                }*/
-                                copy_rows.remove(next_box_in_column.control);
-
-                            }
-
-                            // go to the next column box
-                            next_box_in_column = next_box_in_column.nextDown();
-                        } while (next_box_in_column != null);
-                        removed_rows.add(removed_column);
-                    } else {
-                        ArrayList<DLY> selected = new ArrayList<DLY>();
-                        DLY selected_col = next_column;
-                        do {
-                            selected_col.ghost();
-                            if (selected_col != row) {
-                                copy_rows.remove(selected_col.control);
-                                DLY next_row = selected_col.next();
-                                if (next_row != null) {
-                                    do {
-                                        next_row.ghost();
-                                        selected.add(next_row);
-                                        next_row = next_row.next();
-                                    } while (next_row != null);
+                ArrayList<DLY> selected_row = new ArrayList<DLY>();
+                for (Object obj : next_column.control) {
+                    DLY column = (DLY)obj;
+                    selected_row.add(column);
+                }
+                for (DLY column : selected_row) {
+                    removed.add(column.header);
+                    if (column.header == node) node = node.next();
+                    column.header.ghost();
+                    control_rows.add(column);
+                    DLY next_down = column;
+                    do {
+                        //next_down.ghost();
+                        //removed.add(next_down);
+                        if (next_down != column) {
+                            for (Object obj : next_down.control) {
+                                DLY row_box = (DLY) obj;
+                                if (row_box.alive) {
+                                    row_box.ghost();
+                                    removed.add(row_box);
                                 }
                             }
-                            selected.add(selected_col);
-                            selected_col = selected_col.nextDown();
-                        } while (selected_col != null);
-                        removed_rows.add(selected);
-                    }
-                    next_column = next_column.next();
-                } while (!breaking && next_column != null);
+                        } else {
+                            column.ghost();
+                            removed.add(column);
+                        }
+                        next_down = next_down.nextDown();
+                    } while (next_down != null);
+                }
             }
             int result;
             /*
@@ -392,19 +388,36 @@ public class DancingLinks {
             System.out.println();
             System.out.println(headers.get(5).data);
             */
-            if (!breaking) {
-                ArrayList<DLY> new_solution = new ArrayList<DLY>(solution);
-                new_solution.add(row);
-                if (node == original) node = node.next();
-                if (node != null) {
-                    result = recurse(node, node.data, depth + 1, new_solution,copy_rows);
-                }
+            ArrayList<DLY> new_solution = new ArrayList<DLY>(solution);
+            new_solution.add(row);
+            if (new_solution.size() < 12) {
+                if (node.next() != null) result = recurse(node, node.data, stop, depth + 1, new_solution);
                 else {
-                    System.out.println("Success2: (" + new_solution.size() + ") " + new_solution);
-                    result = -1;
+                    System.out.println("Solution #" + ++solutions);
+                    printSolution(new_solution);
+                    result = depth - 1;
                 }
-            } else result = depth - 1;
-            for (int i = 0; i < ghosted_columns.size(); i++) {
+            }
+            else {
+                System.out.println("Solution #" + ++solutions);
+                printSolution(new_solution);
+                result = depth - 1;
+            }
+            for (Object obj : removed) {
+                if (obj.getClass() == DLX.class) {
+                    DLX removed_column = (DLX)obj;
+                    removed_column.resurrect();
+                    //System.out.println("revived column " + removed_column.num);
+                } else if (obj.getClass() == DLY.class) {
+                    DLY removed_row = (DLY)obj;
+                    removed_row.resurrect();
+                    //System.out.println("revived row " + removed_row);
+                }
+            }
+            for (DLY control_row : control_rows) {
+                control_row.header.data = control_row;
+            }
+            /*for (int i = 0; i < ghosted_columns.size(); i++) {
                 DLY control_row = control_rows.get(i);
                 if (control_row != null) {
                     control_row.header.data = control_row;
@@ -418,11 +431,11 @@ public class DancingLinks {
                     DLY removed_node = removed_row.get(j);
                     removed_node.resurrect();
                 }
-            }
-            if (result < depth) return result;
+            }*/
+            if (depth > 1 && result < depth) return result;
             node = original;
             row = row.nextDown();
-            if (row == null) System.err.println("....");
+            //if (row == null) System.err.println(depth  + "...." + node.num + ", " + node.size);
         } while (row != null && row != first_down);
         return depth - 1;
     }
