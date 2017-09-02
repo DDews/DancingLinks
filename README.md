@@ -41,5 +41,5 @@ The DancingLinks.java solves the same problem in an order of magnitude faster th
 
 
 TODO:
-- Add a GUI for selecting options including: Show attempts graphically, Find all solutions, Find first solution
+- Add a GUI for selecting options including: Show attempts graphically, Play/Pause, Find all solutions, Find first solution, List found solutions graphically
 - Add ability to make custom "boards" to fill with pentomino puzzles rather than a standard rectangle
