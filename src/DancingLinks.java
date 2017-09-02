@@ -266,6 +266,7 @@ public class DancingLinks {
             current = current.next();
         } while (current != null && current != node && current != stop);
         node = found;
+        first_down = node.data;
         if (!first_down.alive) {
             if (rowPiece(solution.get(0)).equals("U") && rowPiece(first_down).equals("X") && depth == 2) System.err.println(get_name(((DLY)first_down.control.iterator().next()).header.num) + " uhhhh: " + depth + ", " + node.size + ", " + node.num);
             if (node.size <= 0) return depth - 1;
@@ -289,11 +290,13 @@ public class DancingLinks {
             if (next_column != null) {
                 ArrayList<DLY> selected_row = new ArrayList<DLY>();
                 // for every object in this row
-                for (Object obj : next_column.control) {
-                    DLY column = (DLY)obj;
-                    // add it to the selection
-                    selected_row.add(column);
-                }
+                DLY selected_box = next_column;
+                do {
+                    // add to selected row
+                    selected_row.add(selected_box);
+                    // and go to next one
+                    selected_box = selected_box.next();
+                } while (selected_box != next_column);
                 // for every selected column box in that selected row
                 for (DLY column : selected_row) {
                     // add this to the removed stack to add it back later
@@ -312,17 +315,16 @@ public class DancingLinks {
                         // don't remove the selected row's box again!
                         if (next_down != column) {
                             // for every object in this row
-                            for (Object obj : next_down.control) {
-                                DLY row_box = (DLY) obj;
-
-                                // if it is alive,
-                                if (row_box.alive) {
-                                    // from now on, skip it
-                                    row_box.ghost();
-                                    // add it to the stack for easy backtracking
-                                    removed.add(row_box);
-                                }
-                            }
+                            DLY next_right = next_down;
+                            do {
+                                // from now on skip this link on this row
+                                next_right.ghost();
+                                // add for backtracking
+                                removed.add(next_right);
+                                // go to the next one
+                                next_right = next_right.next();
+                                // until we run out of nodes
+                            } while (next_right != null);
                         } else {
                             // skip this selected column's row
                             column.ghost();
