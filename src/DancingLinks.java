@@ -1,9 +1,7 @@
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class DancingLinks {
@@ -125,11 +123,14 @@ public class DancingLinks {
             last = col;
         }
         last.add(matrix);
+        /*
         DLX current = matrix;
+
         do {
             System.out.println(current);
             current = current.next();
         } while (current != matrix);
+        */
         for (Pentomino block : blocks) {
             int block_num = block.name.charAt(0) - 'A';
             for (int column = 0; column < (num_columns + 1) - block.width; column++) {
@@ -151,10 +152,14 @@ public class DancingLinks {
                             money.control = control;
                             money = money.next();
                         }
+                        /*
+
                         // For testing; display the piece on the board in this position
                         ArrayList<DLY> test = new ArrayList<DLY>();
                         test.add(last_link);
                         printSolution(test);
+
+                        */
                         i++;
                     }
 
@@ -162,9 +167,6 @@ public class DancingLinks {
             }
         }
         solutions = 0;
-        for (DLX column : headers) {
-            System.out.println(column);
-        }
         //start on the first position on the board.
         matrix = headers.get(12);
         DLX stop = headers.get(0);
@@ -173,7 +175,6 @@ public class DancingLinks {
     }
 
     public static DLY set(DLY to_append, int r, int block_num, int line, int width, int row, int column) {
-        System.out.println(r + ", " + block_num + ", " + Integer.toBinaryString(line) + ", " + width + ", " + row + ", " + column + ": ");
         int k = 0;
         int m = 0;
         DLY first = to_append;
@@ -192,7 +193,9 @@ public class DancingLinks {
             m++;
             k++;
         }
+        /*
         DLY c = last.next();
+
         System.out.print(block_num + "[");
         System.out.print(last + ", ");
         while (c != last) {
@@ -201,7 +204,8 @@ public class DancingLinks {
             c = c.next();
         }
         System.out.println("]");
-        return c.left;
+        */
+        return last.left;
     }
     public static void printSolution(ArrayList<DLY> solution) {
         ArrayList<StringBuilder> table = new ArrayList<StringBuilder>();
@@ -268,7 +272,6 @@ public class DancingLinks {
         node = found;
         first_down = node.data;
         if (!first_down.alive) {
-            if (rowPiece(solution.get(0)).equals("U") && rowPiece(first_down).equals("X") && depth == 2) System.err.println(get_name(((DLY)first_down.control.iterator().next()).header.num) + " uhhhh: " + depth + ", " + node.size + ", " + node.num);
             if (node.size <= 0) return depth - 1;
         }
         DLY row = first_down;
