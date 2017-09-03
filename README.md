@@ -1,3 +1,5 @@
+![Screenshot](screenshot.png)
+
 [DancingLinks.java](src/DancingLinks.java) is an implementation of the [Dancing Links](https://en.wikipedia.org/wiki/Dancing_Links) algorithm by [Dr Donald Knuth](https://en.wikipedia.org/wiki/Donald_Knuth), used to solve [pentomino puzzles](http://puzzler.sourceforge.net/docs/pentominoes.html).
 
 
