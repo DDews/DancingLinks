@@ -13,6 +13,7 @@ public class DancingLinks {
     private static int num_rows = 0;
     private static int num_pieces = 0;
     private static ArrayList<String> colors;
+    private static GUI window;
     private static String[] block_name = new String[]{"I", "F", "L", "Z", "P", "T", "U", "V", "W", "X", "Y", "N"};
 
     public static String get_name(int block) {
@@ -67,6 +68,7 @@ public class DancingLinks {
             num_pieces = Integer.parseInt(reader.readLine());
             num_columns = Integer.parseInt(dimensions[1]);
             num_rows = Integer.parseInt(dimensions[0]);
+            if (num_rows * num_columns != 60) throw new IllegalStateException("Cannot have a rectangle that use all 12 pentomino pieces with dimensions " + num_columns + " by " + num_rows + ". The area must be exactly 60.");
             String pentamino;
             while ((pentamino = reader.readLine()) != null) {
                 String[] split = pentamino.split("\\s+");
@@ -76,9 +78,13 @@ public class DancingLinks {
                 }
                 pentaminoes.add(piece);
             }
-        } catch (Exception e) {
+        } catch(IllegalStateException e) {
+            e.printStackTrace();
+            return;
+        } catch(Exception e) {
             System.err.println("Encountered error trying to parse file " + file.getAbsolutePath());
             e.printStackTrace();
+            return;
         }
 
         // make meaningful objects out of them
@@ -166,6 +172,7 @@ public class DancingLinks {
                 }
             }
         }
+        window = new GUI(num_columns,num_rows);
         solutions = 0;
         //start on the first position on the board.
         matrix = headers.get(12);
@@ -236,11 +243,15 @@ public class DancingLinks {
         }
         for (StringBuilder row : table) System.out.println(row);
     }
+    public static void showSolution(ArrayList<DLY> solution) {
+        window.add(solution);
+    }
     public static void printDepth(int depth, DLX original, int i) {
         StringBuilder out = new StringBuilder(50);
         int total = 0;
 
         int n = Math.round(((float)i / original.size) * 50);
+        window.setProgress(n);
         for (int j = 0; j < n; j++) {
             out.append(colors.get(2));
             total++;
@@ -353,13 +364,15 @@ public class DancingLinks {
                     // otherwise we have found one solution
                     System.out.println("Solution #" + ++solutions);
                     printSolution(new_solution);
-                    result = depth - 1; // I am guessing using the last 2 pieces won't generate another solution, as this emplies that this piece is the same as another
+                    showSolution(new_solution);
+                    result =  depth - 1; // I am guessing using the last 2 pieces won't generate another solution, as this emplies that this piece is the same as another
                 }
             }
             else {
                 // if we have used all the pieces, print this solution
                 System.out.println("Solution #" + ++solutions);
                 printSolution(new_solution);
+                showSolution(new_solution);
                 result = depth - 1; // I am guessing using the last piece will not make more solutions, as this emplies that this piece can be interchanged with another
             }
             // backtrack
@@ -390,7 +403,7 @@ public class DancingLinks {
 
             // until we run out of rows in this column
         } while (row != null && row != first_down);
-
+        if (depth == 0) printDepth(0,node,node.size);
         // we tried every possibility in this column. backtrack
         return depth - 1;
     }
