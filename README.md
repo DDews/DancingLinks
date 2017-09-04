@@ -1,4 +1,7 @@
-![Screenshot](screenshot.png)
+![Screenshot: Before opening input file](screenshot1.png)
+![Screenshot: Loading a 4by15.txt input file](screenshot2.png)
+![Screenshot: Running a 4by15.txt input file](screenshot3.png)
+![Screenshot: Paused and stepping through a 4by15.txt input file](screenshot4.png)
 
 [DancingLinks.java](src/DancingLinks.java) is an implementation of the [Dancing Links](https://en.wikipedia.org/wiki/Dancing_Links) algorithm by [Dr Donald Knuth](https://en.wikipedia.org/wiki/Donald_Knuth), used to solve [pentomino puzzles](http://puzzler.sourceforge.net/docs/pentominoes.html).
 
