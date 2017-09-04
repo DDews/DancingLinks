@@ -30,7 +30,7 @@ public class DLX {
     }
     public void add(DLY other) {
         if (data == null) data = other;
-        data.addBottom(other);
+        data.addTop(other);
         size++;
     }
     public void ghost() {

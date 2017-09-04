@@ -8,8 +8,10 @@ public class Solution extends JPanel {
     protected int height = 100;
     protected int columns;
     protected int rows;
+    protected int num_pieces;
     ArrayList<DLY> solution;
-    public Solution(int columns, int rows, int width, int height, ArrayList<DLY> solution) {
+    public Solution(int num_pieces, int columns, int rows, int width, int height, ArrayList<DLY> solution) {
+        this.num_pieces = num_pieces;
         this.width = width;
         this.height = height;
         this.columns = columns;
@@ -19,17 +21,31 @@ public class Solution extends JPanel {
         this.setPreferredSize(new Dimension(columns * width + 2, rows * height + 2));
         this.setBackground(Color.BLACK);
     }
-    public Solution(int columns, int rows, ArrayList<DLY> solution) {
-        this(columns,rows,100,100,solution);
+    public Solution(int num_pieces, int columns, int rows, ArrayList<DLY> solution) {
+        this(num_pieces, columns,rows,100,100,solution);
+    }
+    public Color getColor(int p) {
+        p++;
+        float n = (float)Math.log(num_pieces + 1)/(float)Math.log(3);
+        float h = p % n;
+
+        float t = p / n;
+
+        float s = t % n;
+
+        t = t / n;
+
+        float b = t;
+        return new Color(h / n, s / n, b / n);
+        //return new Color(Color.HSBtoRGB(h / n, s / n, b / n));
     }
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        float num_pieces = (float)solution.size();
         int i = 0;
         for (DLY s : solution) {
             Iterator<DLY> control_iterator = s.control.iterator();
-            g.setColor(new Color(Color.HSBtoRGB((float)control_iterator.next().header.num / num_pieces, 1.0f,1.0f)));
+            g.setColor(getColor(control_iterator.next().header.num));
             while (control_iterator.hasNext()) {
                 DLY current = control_iterator.next();
 
@@ -43,7 +59,7 @@ public class Solution extends JPanel {
             }
             i++;
         }
-        g.setColor(Color.BLACK);
+        g.setColor(Color.WHITE);
         g.drawRect(0,0,columns * width + 2,rows * height + 2);
     }
 }

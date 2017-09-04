@@ -1,3 +1,4 @@
+import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -5,9 +6,15 @@ import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class DancingLinks {
+    private static boolean debugging = false;
     private static long start_time;
     private static int solutions = 0;
     private static DLX matrix;
+    protected static boolean done = true;
+    protected static boolean firstSolution = false;
+    protected static boolean stepping = false;
+    protected static boolean showing_attempts = false;
+    protected static Thread thread;
     private static ArrayList<DLX> headers;
     private static int num_columns = 0;
     private static int num_rows = 0;
@@ -26,20 +33,16 @@ public class DancingLinks {
     }
 
     public static void main(String[] args) {
-        System.out.println("Name of data file: ");
-        Scanner in = new Scanner(System.in);
-        String filename = in.nextLine();
-        File file = new File(filename);
-        if (!file.exists()) {
-            System.err.println("Unable to locate file: " + file.getAbsolutePath());
-            return;
+        if (args.length != 0) {
+            String filename = args[0];
+            File file = new File(filename);
+            if (!file.exists()) {
+                JOptionPane.showMessageDialog(window,"Unable to locate file: " + file.getAbsolutePath());
+                return;
+            }
+            read(file);
         }
-        colors = new ArrayList<String>();
-        colors.add("░");
-        colors.add("▒");
-        colors.add("▓");
-        headers = new ArrayList<DLX>();
-        read(file);
+        else window = new GUI(10,6, 12);
     }
 
     public static String time(long timeInMilliSeconds) {
@@ -50,16 +53,22 @@ public class DancingLinks {
         return days + ":" + hours % 24 + ":" + minutes % 60 + ":" + seconds % 60;
     }
     public static void read(File file) {
+        num_pieces = 0;
+        solutions = 0;
+        colors = new ArrayList<String>();
+        colors.add("░");
+        colors.add("▒");
+        colors.add("▓");
+        headers = new ArrayList<DLX>();
         BufferedReader reader = null;
         try {
             reader = new BufferedReader(new FileReader(file));
         } catch (Exception e) {
-            System.err.println("Error encountered trying to read from file " + file.getAbsolutePath());
+            JOptionPane.showMessageDialog(window,"Error encountered trying to read from file " + file.getAbsolutePath() + "\n" + e.toString());
             e.printStackTrace();
             return;
         }
         if (reader == null) return;
-        start_time = System.currentTimeMillis();
         // initialize variables
         num_pieces = num_rows = num_columns = 0;
         ArrayList<ArrayList<Integer>> pentaminoes = new ArrayList<ArrayList<Integer>>();
@@ -82,11 +91,12 @@ public class DancingLinks {
             e.printStackTrace();
             return;
         } catch(Exception e) {
-            System.err.println("Encountered error trying to parse file " + file.getAbsolutePath());
+            JOptionPane.showMessageDialog(window,"Encountered error trying to parse file " + file.getAbsolutePath() + "\n" + e.toString());
             e.printStackTrace();
             return;
         }
 
+        if (window != null) window.recreate(num_columns,num_rows,num_pieces);
         // make meaningful objects out of them
         char c = 'A' - 1;
         ArrayList<Pentomino> blocks = new ArrayList<Pentomino>();
@@ -109,9 +119,9 @@ public class DancingLinks {
             if (!blocks.contains(flipped_270)) blocks.add(flipped_270);
             if (!blocks.contains(flipped_norm)) blocks.add(flipped_norm);
         }
-        System.out.println("Pentominoes:\n");
+        debugMsg("Pentominoes:\n");
         for (Pentomino block : blocks) {
-            System.out.println(block + "\n");
+            debugMsg(block + "\n");
         }
         int positions = 0;
         for (Pentomino block : blocks) {
@@ -133,10 +143,12 @@ public class DancingLinks {
         DLX current = matrix;
 
         do {
-            System.out.println(current);
+            debugMsg(current);
             current = current.next();
         } while (current != matrix);
         */
+        window.recreate(num_columns,num_rows,num_pieces);
+        int last_block = -1;
         for (Pentomino block : blocks) {
             int block_num = block.name.charAt(0) - 'A';
             for (int column = 0; column < (num_columns + 1) - block.width; column++) {
@@ -171,16 +183,29 @@ public class DancingLinks {
 
                 }
             }
+            if (last_block != block_num) {
+                if (headers.get(block_num).data != null) {
+                    ArrayList<DLY> piece = new ArrayList<DLY>();
+                    piece.add(headers.get(block_num).data);
+                    showSolution(piece);
+                    last_block = block_num;
+                }
+            }
         }
-        window = new GUI(num_columns,num_rows);
+
+    }
+
+    public static void start() {
+        done = false;
+        window.recreate(num_columns,num_rows,num_pieces);
         solutions = 0;
         //start on the first position on the board.
+        start_time = System.currentTimeMillis();
         matrix = headers.get(12);
         DLX stop = headers.get(0);
         recurse(matrix, matrix.data, stop,0, new ArrayList<DLY>());
-        System.out.println("Dancing links time: " + time(System.currentTimeMillis() - start_time));
+        done = true;
     }
-
     public static DLY set(DLY to_append, int r, int block_num, int line, int width, int row, int column) {
         int k = 0;
         int m = 0;
@@ -210,7 +235,7 @@ public class DancingLinks {
             if (c.next() != last) System.out.print(", ");
             c = c.next();
         }
-        System.out.println("]");
+        debugMsg("]");
         */
         return last.left;
     }
@@ -235,16 +260,16 @@ public class DancingLinks {
 
                     int column = (current.header.num - num_pieces) % num_columns;
                     if (!table.get(row).substring(column, column + 1).equals("."))
-                        System.err.println("collision... of " + rand_color + " overwriting " + table.get(row).substring(column, column + 1));
+                        JOptionPane.showMessageDialog(window,"collision... of " + rand_color + " overwriting " + table.get(row).substring(column, column + 1));
                     table.get(row).replace(column, column + 1, rand_color);
                 }
                 piece++;
             }
         }
-        for (StringBuilder row : table) System.out.println(row);
+        for (StringBuilder row : table) debugMsg(row);
     }
     public static void showSolution(ArrayList<DLY> solution) {
-        window.add(solution);
+        window.add(solution,solutions);
     }
     public static void printDepth(int depth, DLX original, int i) {
         StringBuilder out = new StringBuilder(50);
@@ -262,10 +287,16 @@ public class DancingLinks {
             total++;
         }*/
         for (; total < 50; total++) out.append(colors.get(0));
-        System.out.println(out);
+        debugMsg(out);
+    }
+    public static void finish() {
+        window.finish("Found " + solutions + " in " + time(System.currentTimeMillis() - start_time));
     }
     public static String rowPiece(DLY obj) {
         return get_name(((DLY)obj.control.iterator().next()).header.num);
+    }
+    private static void debugMsg(Object msg) {
+        if (debugging) System.out.println(msg);
     }
     public static int recurse(DLX node, DLY first_down, DLX stop, int depth, ArrayList<DLY> solution) {
         DLX current = node;
@@ -277,6 +308,9 @@ public class DancingLinks {
                     smallest = current.size;
                     found = current;
                 }
+            }
+            else {
+                return depth - 1;
             }
             current = current.next();
         } while (current != null && current != node && current != stop);
@@ -292,8 +326,13 @@ public class DancingLinks {
             return depth - 1;
         }
         do {
+            if (stepping) try {
+                thread.suspend();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             if (depth == 0) {
-                System.out.println(get_name(((DLY) row.control.iterator().next()).header.num));
+                debugMsg(get_name(((DLY) row.control.iterator().next()).header.num));
             }
             if (depth == 0) printDepth(depth,original,iteration++);
             boolean breaking = false;
@@ -359,21 +398,26 @@ public class DancingLinks {
             // if we haven't found all the pieces,
             if (new_solution.size() < num_pieces) {
                 // and there are more columns to traverse, recurse
-                if (node.next() != null) result = recurse(node, node.data, stop, depth + 1, new_solution);
+                if (node.next() != null) {
+                    if (showing_attempts) window.showAttempt(new_solution);
+                    result = recurse(node, node.data, null, depth + 1, new_solution);
+                }
                 else {
                     // otherwise we have found one solution
-                    System.out.println("Solution #" + ++solutions);
+                    debugMsg("Solution #" + ++solutions);
                     printSolution(new_solution);
                     showSolution(new_solution);
-                    result =  depth - 1; // I am guessing using the last 2 pieces won't generate another solution, as this emplies that this piece is the same as another
+                    result = depth - 1;
+                    if (firstSolution) thread.suspend();
                 }
             }
             else {
                 // if we have used all the pieces, print this solution
-                System.out.println("Solution #" + ++solutions);
+                debugMsg("Solution #" + ++solutions);
                 printSolution(new_solution);
                 showSolution(new_solution);
-                result = depth - 1; // I am guessing using the last piece will not make more solutions, as this emplies that this piece can be interchanged with another
+                result = depth - 1;
+                if (firstSolution) thread.suspend();
             }
             // backtrack
             for (Object obj : removed) {
@@ -402,8 +446,9 @@ public class DancingLinks {
             row = row.nextDown();
 
             // until we run out of rows in this column
+
         } while (row != null && row != first_down);
-        if (depth == 0) printDepth(0,node,node.size);
+        if (depth == 0) finish();
         // we tried every possibility in this column. backtrack
         return depth - 1;
     }
